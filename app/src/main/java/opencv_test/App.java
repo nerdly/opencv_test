@@ -4,14 +4,19 @@
 package opencv_test;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import org.checkerframework.checker.units.qual.m;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 
@@ -25,18 +30,35 @@ public class App {
         // create image capture 
         VideoCapture vc = new VideoCapture(0);
         Mat image = new Mat(); 
-        byte[] imageData; 
+        //final MatOfByte buf = new MatOfByte(); 
+        //Imgcodecs.imencode(".jpg", image, buf); 
 
         // read image to matrix 
         vc.read(image); 
   
+        writeImage(image, "captured");
+
+        Mat greyscale = new Mat();
+
+        Imgproc.cvtColor(image, greyscale, Imgproc.COLOR_BGR2GRAY);
+        writeImage(greyscale, "grey");
+
+
+        Mat threshold = new Mat();
+         Imgproc.threshold(greyscale, threshold,  127, 255, Imgproc.THRESH_BINARY);
+        writeImage(threshold, "thresh");
+
+        List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+        Imgproc.findContours(greyscale, contours, threshold, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        System.out.println("Found " + contours.size() + " Contours");
+    }
+
+    public static void writeImage(Mat image, String label)
+    {
         // convert matrix to byte 
-        final MatOfByte buf = new MatOfByte(); 
-        Imgcodecs.imencode(".jpg", image, buf); 
 
-        imageData = buf.toArray(); 
 
-        String name = "C:/Users/matth/OneDrive/Documents/Robotics/images/" +new SimpleDateFormat( 
+        String name = "C:/Users/matth/OneDrive/Documents/Robotics/images/" + label + new SimpleDateFormat( 
             "yyyy-mm-dd-hh-mm-ss") 
             .format(new Date( )) + ".jpg";
 
