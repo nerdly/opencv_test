@@ -36,14 +36,14 @@ public class App {
 
         imageData = buf.toArray(); 
 
-        String name = new SimpleDateFormat( 
+        String name = "C:/Users/matth/OneDrive/Documents/Robotics/images/" +new SimpleDateFormat( 
             "yyyy-mm-dd-hh-mm-ss") 
             .format(new Date( )) + ".jpg";
 
         System.out.println("Saving capture to " + name);
 
         // Write to file 
-        Imgcodecs.imwrite("images/" + name , 
+        Imgcodecs.imwrite(name , 
         image); 
     }
 }
