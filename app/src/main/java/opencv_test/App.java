@@ -3,12 +3,47 @@
  */
 package opencv_test;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.core.Scalar;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.videoio.VideoCapture;
+
+
 public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
+    static{ nu.pattern.OpenCV.loadLocally(); }
 
     public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+        System.out.println("Welcome to OpenCV " + Core.VERSION);
+
+
+        // create image capture 
+        VideoCapture vc = new VideoCapture(0);
+        Mat image = new Mat(); 
+        byte[] imageData; 
+
+        // read image to matrix 
+        vc.read(image); 
+  
+        // convert matrix to byte 
+        final MatOfByte buf = new MatOfByte(); 
+        Imgcodecs.imencode(".jpg", image, buf); 
+
+        imageData = buf.toArray(); 
+
+        String name = new SimpleDateFormat( 
+            "yyyy-mm-dd-hh-mm-ss") 
+            .format(new Date( )) + ".jpg";
+
+        System.out.println("Saving capture to " + name);
+
+        // Write to file 
+        Imgcodecs.imwrite("images/" + name , 
+        image); 
     }
 }
