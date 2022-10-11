@@ -14,6 +14,8 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -43,16 +45,27 @@ public class App {
         // writeImage(greyscale, "grey");
 
         Mat yCrCb = new Mat();
+         final int REGION_WIDTH = 40;
+         final int REGION_HEIGHT = 40;
+         final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(280,70);
+        Point region1_pointA = new Point(
+            REGION2_TOPLEFT_ANCHOR_POINT.x,
+            REGION2_TOPLEFT_ANCHOR_POINT.y);
+    Point region1_pointB = new Point(
+        REGION2_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
+        REGION2_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
 
-        // Imgproc.cvtColor(image, yCrCb, Imgproc.COLOR_BGR2YCrCb);
+        Mat region1_Cb = yCrCb.submat(new Rect(region1_pointA, region1_pointB));
+
+        Imgproc.cvtColor(image, region1_Cb, Imgproc.COLOR_BGR2YCrCb);
         // writeImage(yCrCb, "ycrcb");
 
         Mat blue = new Mat();
-        Core.extractChannel(yCrCb, blue, 1);
+        Core.extractChannel(region1_Cb, blue, 1);
         writeImage(blue, "blue");
 
         Mat red = new Mat();
-        Core.extractChannel(yCrCb, red, 2);
+        Core.extractChannel(region1_Cb, red, 2);
         writeImage(red, "red");
 
         Mat c = new Mat();
