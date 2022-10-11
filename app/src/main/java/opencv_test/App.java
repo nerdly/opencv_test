@@ -38,19 +38,35 @@ public class App {
   
         writeImage(image, "captured");
 
-        Mat greyscale = new Mat();
+        // Mat greyscale = new Mat();
+        // Imgproc.cvtColor(image, greyscale, Imgproc.COLOR_BGR2GRAY);
+        // writeImage(greyscale, "grey");
 
-        Imgproc.cvtColor(image, greyscale, Imgproc.COLOR_BGR2GRAY);
-        writeImage(greyscale, "grey");
+        Mat yCrCb = new Mat();
+
+        // Imgproc.cvtColor(image, yCrCb, Imgproc.COLOR_BGR2YCrCb);
+        // writeImage(yCrCb, "ycrcb");
+
+        Mat blue = new Mat();
+        Core.extractChannel(yCrCb, blue, 1);
+        writeImage(blue, "blue");
+
+        Mat red = new Mat();
+        Core.extractChannel(yCrCb, red, 2);
+        writeImage(red, "red");
+
+        Mat c = new Mat();
+        Core.extractChannel(yCrCb, c, 0);
+        writeImage(c, "c");
 
 
-        Mat threshold = new Mat();
-         Imgproc.threshold(greyscale, threshold,  127, 255, Imgproc.THRESH_BINARY);
-        writeImage(threshold, "thresh");
+        // Mat threshold = new Mat();
+        //  Imgproc.threshold(greyscale, threshold,  127, 255, Imgproc.THRESH_BINARY);
+        // writeImage(threshold, "thresh");
 
-        List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        Imgproc.findContours(greyscale, contours, threshold, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-        System.out.println("Found " + contours.size() + " Contours");
+        // List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+        // Imgproc.findContours(greyscale, contours, threshold, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        // System.out.println("Found " + contours.size() + " Contours");
     }
 
     public static void writeImage(Mat image, String label)
@@ -58,9 +74,9 @@ public class App {
         // convert matrix to byte 
 
 
-        String name = "C:/Users/matth/OneDrive/Documents/Robotics/images/" + label + new SimpleDateFormat( 
+        String name = "C:/Users/matth/OneDrive/Documents/Robotics/images/"  + new SimpleDateFormat( 
             "yyyy-mm-dd-hh-mm-ss") 
-            .format(new Date( )) + ".jpg";
+            .format(new Date( )) + label + ".jpg";
 
         System.out.println("Saving capture to " + name);
 
