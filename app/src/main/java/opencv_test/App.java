@@ -45,32 +45,41 @@ public class App {
         // writeImage(greyscale, "grey");
 
         Mat yCrCb = new Mat();
-         final int REGION_WIDTH = 40;
-         final int REGION_HEIGHT = 40;
-         final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(280,70);
-        Point region1_pointA = new Point(
-            REGION2_TOPLEFT_ANCHOR_POINT.x,
-            REGION2_TOPLEFT_ANCHOR_POINT.y);
-    Point region1_pointB = new Point(
-        REGION2_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
-        REGION2_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
 
-        Mat region1_Cb = yCrCb.submat(new Rect(region1_pointA, region1_pointB));
+    //      final int REGION_WIDTH = 40;
+    //      final int REGION_HEIGHT = 40;
+     Point TOPLEFT_ANCHOR_POINT = new Point(250,200);
+     Point BOTTOMRIGHT_ANCHOR_POINT = new Point(300,275);
+    //     Point region1_pointA = new Point(
+    //         REGION2_TOPLEFT_ANCHOR_POINT.x,
+    //         REGION2_TOPLEFT_ANCHOR_POINT.y);
+    // Point region1_pointB = new Point(
+    //     REGION2_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
+    //     REGION2_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
 
-        Imgproc.cvtColor(image, region1_Cb, Imgproc.COLOR_BGR2YCrCb);
+        Mat region1_Cb = image.submat(new Rect(TOPLEFT_ANCHOR_POINT, BOTTOMRIGHT_ANCHOR_POINT));
+        writeImage(region1_Cb, "regionraw");
+        System.out.println("Cols: " + region1_Cb.cols() + " rows: " + region1_Cb.rows());
+
+        Imgproc.cvtColor(region1_Cb, yCrCb, Imgproc.COLOR_BGR2YCrCb);
         // writeImage(yCrCb, "ycrcb");
 
         Mat blue = new Mat();
-        Core.extractChannel(region1_Cb, blue, 1);
+        Core.extractChannel(yCrCb, blue, 1);
         writeImage(blue, "blue");
 
         Mat red = new Mat();
-        Core.extractChannel(region1_Cb, red, 2);
+        Core.extractChannel(yCrCb, red, 2);
         writeImage(red, "red");
 
         Mat c = new Mat();
         Core.extractChannel(yCrCb, c, 0);
         writeImage(c, "c");
+
+        int avg1 = (int) Core.mean(blue).val[0];
+        int avg2 = (int) Core.mean(red).val[0];
+
+        System.out.println("blueavg:"+avg1 + " redavg:" + avg2);
 
 
         // Mat threshold = new Mat();
