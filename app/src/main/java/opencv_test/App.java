@@ -4,78 +4,72 @@
 package opencv_test;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
-import org.checkerframework.checker.units.qual.m;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
-import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 
 public class App {
+    // Load the native code library for OpenCV from the gradle lib.
     static{ nu.pattern.OpenCV.loadLocally(); }
 
+    // Define the area of the captured picture to look at.
+    private static Point TOPLEFT_ANCHOR_POINT = new Point(250,200);
+    private static Point BOTTOMRIGHT_ANCHOR_POINT = new Point(300,275);
+
+    /**
+     * Main program function, execution starts here.
+     * @param args string array of command line arguments. Not used.
+     */
     public static void main(String[] args) {
         System.out.println("Welcome to OpenCV " + Core.VERSION);
 
-
-        // create image capture 
+        // create image capture for zeroth web cam.
         VideoCapture vc = new VideoCapture(0);
         Mat image = new Mat(); 
-        //final MatOfByte buf = new MatOfByte(); 
-        //Imgcodecs.imencode(".jpg", image, buf); 
 
         // read image to matrix 
         vc.read(image); 
   
+        // save the image as captured by the camera for reference.
         writeImage(image, "captured");
 
-        // Mat greyscale = new Mat();
-        // Imgproc.cvtColor(image, greyscale, Imgproc.COLOR_BGR2GRAY);
-        // writeImage(greyscale, "grey");
-
-        Mat yCrCb = new Mat();
-
-    //      final int REGION_WIDTH = 40;
-    //      final int REGION_HEIGHT = 40;
-     Point TOPLEFT_ANCHOR_POINT = new Point(250,200);
-     Point BOTTOMRIGHT_ANCHOR_POINT = new Point(300,275);
-    //     Point region1_pointA = new Point(
-    //         REGION2_TOPLEFT_ANCHOR_POINT.x,
-    //         REGION2_TOPLEFT_ANCHOR_POINT.y);
-    // Point region1_pointB = new Point(
-    //     REGION2_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
-    //     REGION2_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
-
+        // grab the part of the original image to run detection on
         Mat region1_Cb = image.submat(new Rect(TOPLEFT_ANCHOR_POINT, BOTTOMRIGHT_ANCHOR_POINT));
+        
+        // Save sub-image for reference.
         writeImage(region1_Cb, "regionraw");
+
+        // Print out the size of the sub-image in rows and columns
         System.out.println("Cols: " + region1_Cb.cols() + " rows: " + region1_Cb.rows());
 
-        Imgproc.cvtColor(region1_Cb, yCrCb, Imgproc.COLOR_BGR2YCrCb);
-        // writeImage(yCrCb, "ycrcb");
 
+        // transform the image data into yCrCb color format.
+        Mat yCrCb = new Mat();
+        Imgproc.cvtColor(region1_Cb, yCrCb, Imgproc.COLOR_BGR2YCrCb);
+
+        // Extract the blue channel and save for reference.
         Mat blue = new Mat();
         Core.extractChannel(yCrCb, blue, 1);
         writeImage(blue, "blue");
 
+        // Extract the red channel and save for reference.
         Mat red = new Mat();
         Core.extractChannel(yCrCb, red, 2);
         writeImage(red, "red");
 
+        // Extract the intensity channel and save for reference.
         Mat c = new Mat();
         Core.extractChannel(yCrCb, c, 0);
         writeImage(c, "c");
 
+        // grabe the average value for the blue and red channels, and print out to console.
         int avg1 = (int) Core.mean(blue).val[0];
         int avg2 = (int) Core.mean(red).val[0];
 
@@ -91,19 +85,25 @@ public class App {
         // System.out.println("Found " + contours.size() + " Contours");
     }
 
+    /**
+     * Writes out the image to a file in a specific directory.
+     * 
+     * File is named with current date/time stamp plus a provided label.
+     * 
+     * @param image The Mat of the image to print
+     * @param label The label to include in the filename.
+     */
     public static void writeImage(Mat image, String label)
     {
-        // convert matrix to byte 
-
-
+        // Generate name
         String name = "C:/Users/matth/OneDrive/Documents/Robotics/images/"  + new SimpleDateFormat( 
-            "yyyy-mm-dd-hh-mm-ss") 
+            "yyyy-MM-dd-hh-mm-ss") 
             .format(new Date( )) + label + ".jpg";
 
+        // note filename to output
         System.out.println("Saving capture to " + name);
 
         // Write to file 
-        Imgcodecs.imwrite(name , 
-        image); 
+        Imgcodecs.imwrite(name, image); 
     }
 }
