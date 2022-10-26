@@ -4,12 +4,16 @@
 package opencv_test;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
@@ -31,58 +35,57 @@ public class App {
         System.out.println("Welcome to OpenCV " + Core.VERSION);
 
         // create image capture for zeroth web cam.
-        VideoCapture vc = new VideoCapture(0);
-        Mat image = new Mat(); 
-
-        // read image to matrix 
-        vc.read(image); 
-  
-        // save the image as captured by the camera for reference.
-        writeImage(image, "captured");
-
-        // grab the part of the original image to run detection on
-        Mat region1_Cb = image.submat(new Rect(TOPLEFT_ANCHOR_POINT, BOTTOMRIGHT_ANCHOR_POINT));
-        
-        // Save sub-image for reference.
-        writeImage(region1_Cb, "regionraw");
-
-        // Print out the size of the sub-image in rows and columns
-        System.out.println("Cols: " + region1_Cb.cols() + " rows: " + region1_Cb.rows());
-
+        //VideoCapture vc = new VideoCapture(0);
+        Mat image = Imgcodecs.imread("C:/Users/matth/OneDrive/Documents/Robotics/opencv_test/IMG_8940.jpg" ); 
+        //writeImage(image, "original");
 
         // transform the image data into yCrCb color format.
         Mat yCrCb = new Mat();
-        Imgproc.cvtColor(region1_Cb, yCrCb, Imgproc.COLOR_BGR2YCrCb);
+        Imgproc.cvtColor(image, yCrCb, Imgproc.COLOR_BGR2YCrCb);
 
         // Extract the blue channel and save for reference.
         Mat blue = new Mat();
         Core.extractChannel(yCrCb, blue, 1);
-        writeImage(blue, "blue");
 
         // Extract the red channel and save for reference.
         Mat red = new Mat();
         Core.extractChannel(yCrCb, red, 2);
-        writeImage(red, "red");
 
         // Extract the intensity channel and save for reference.
-        Mat c = new Mat();
-        Core.extractChannel(yCrCb, c, 0);
-        writeImage(c, "c");
+        Mat intensity = new Mat();
+        Core.extractChannel(yCrCb, intensity, 0);
 
-        // grabe the average value for the blue and red channels, and print out to console.
+        // grab the average value for the blue and red channels, and print out to console.
         int avg1 = (int) Core.mean(blue).val[0];
         int avg2 = (int) Core.mean(red).val[0];
 
         System.out.println("blueavg:"+avg1 + " redavg:" + avg2);
 
+        //writeImage(red, "blue");
 
-        // Mat threshold = new Mat();
-        //  Imgproc.threshold(greyscale, threshold,  127, 255, Imgproc.THRESH_BINARY);
-        // writeImage(threshold, "thresh");
+        Mat hsv = new Mat();
 
-        // List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        // Imgproc.findContours(greyscale, contours, threshold, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-        // System.out.println("Found " + contours.size() + " Contours");
+        Imgproc.cvtColor(image, hsv, Imgproc.COLOR_BGR2HSV);
+
+        Mat mask = new Mat();
+
+
+        Scalar lower = new Scalar(0, 150, 200);
+        Scalar upper = new Scalar(55, 255, 255);
+
+        Core.inRange(hsv, lower, upper, mask);
+
+        writeImage(mask, "yellow");
+        
+        
+        // Imgproc.threshold(hsv, threshold,  127, 255, Imgproc.THRESH_BINARY);
+
+        
+        
+
+        //List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+        //Imgproc.findContours(mask, contours, null, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        //System.out.println("Found " + contours.size() + " Contours");
     }
 
     /**
