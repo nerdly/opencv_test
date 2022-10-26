@@ -77,15 +77,20 @@ public class App {
 
         writeImage(mask, "yellow");
         
-        
-        // Imgproc.threshold(hsv, threshold,  127, 255, Imgproc.THRESH_BINARY);
+        Mat threshold = new Mat();
+        Imgproc.threshold(hsv, threshold,  127, 255, Imgproc.THRESH_BINARY);
 
         
         
 
-        //List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        //Imgproc.findContours(mask, contours, null, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-        //System.out.println("Found " + contours.size() + " Contours");
+        List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+        Imgproc.findContours(mask, contours, threshold, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+        System.out.println("Found " + contours.size() + " Contours");
+        writeImage(threshold, "thresh");
+        for(int i = 0; i < contours.size(); i++)
+        {
+            System.out.println("contour " + i + " width " + contours.get(i).width());
+        }
     }
 
     /**
