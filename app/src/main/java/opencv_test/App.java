@@ -17,6 +17,7 @@ import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
+import org.opencv.core.Size;
 
 
 public class App {
@@ -36,7 +37,7 @@ public class App {
 
         // create image capture for zeroth web cam.
         //VideoCapture vc = new VideoCapture(0);
-        Mat image = Imgcodecs.imread("C:/Users/matth/OneDrive/Documents/Robotics/opencv_test/IMG_8940.jpg" ); 
+        Mat image = Imgcodecs.imread("C:/Users/matth/OneDrive/Documents/Robotics/opencv_test/two foot.jpg" ); 
         //writeImage(image, "original");
 
         // transform the image data into yCrCb color format.
@@ -70,27 +71,68 @@ public class App {
         Mat mask = new Mat();
 
 
-        Scalar lower = new Scalar(0, 150, 200);
-        Scalar upper = new Scalar(55, 255, 255);
+        Scalar lower = new Scalar(0, 150, 175);
+        Scalar upper = new Scalar(60, 255, 255);
 
         Core.inRange(hsv, lower, upper, mask);
 
         writeImage(mask, "yellow");
-        
-        Mat threshold = new Mat();
-        Imgproc.threshold(hsv, threshold,  127, 255, Imgproc.THRESH_BINARY);
 
-        
-        
+        Mat blurred = new Mat();
+        Size kernelsize = new Size(15,15);
+        Imgproc.GaussianBlur(mask, blurred, kernelsize, 0);
+
+        Mat threshold = new Mat();
+        Imgproc.threshold(blurred, threshold,  127, 255, Imgproc.THRESH_BINARY);
+
+        writeImage(blurred, "blurry");
 
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        Imgproc.findContours(mask, contours, threshold, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+        Imgproc.findContours(blurred, contours, threshold, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
         System.out.println("Found " + contours.size() + " Contours");
-        writeImage(threshold, "thresh");
+
+        // find biggest contour
+
+        int indexOfMaxArea = 0;
+        double maxArea = 0;
+        
         for(int i = 0; i < contours.size(); i++)
-        {
-            System.out.println("contour " + i + " width " + contours.get(i).width());
+        {   
+            double areaOfCurrentContour = Imgproc.contourArea(contours.get(i));
+            Rect bounds = Imgproc.boundingRect(contours.get(i));
+            //System.out.println("contour " + i + " width " + bounds.width + " height " + bounds.height + " cols " + contours.get(i).cols() + " rows " + contours.get(i).rows() + " continuous " + contours.get(i).isContinuous() + " area " + areaOfCurrentContour);
+            if(areaOfCurrentContour > maxArea)
+            {
+                maxArea = areaOfCurrentContour;
+                indexOfMaxArea = i;
+            }
+            //Imgproc.drawContours(contimg, contours, i, new Scalar(0,255,0),11);
+
         }
+
+        MatOfPoint largestContour = contours.get(indexOfMaxArea);
+        Rect bounds = Imgproc.boundingRect(largestContour);
+        Point tl = new Point(bounds.x, bounds.y);
+        Point br = new Point(bounds.x + bounds.width, bounds.y + bounds.height);
+        Imgproc.rectangle(image, tl, br,new Scalar(0,255,0) , 10);
+
+        // Find center of biggest contour
+        int center = bounds.x + (bounds.width/2);
+        int centerOfImage = image.width() / 2;
+        int offset = Math.abs(center - centerOfImage);
+        System.out.println("Center of contour: " + center);
+        System.out.println("Center of image " + centerOfImage);
+        System.out.println("Offset: " + offset);
+        
+        Imgproc.line(image, new Point(center, 0), new Point(center, image.height()), new Scalar(255,0,0));
+        writeImage(image, "Biggest");
+
+        // find width
+        double focalLength = 25; // in
+        double KNOWN_WIDTH = 1.0; // in
+
+        double distance = (KNOWN_WIDTH * focalLength) / bounds.width;
+        System.out.println("Width (inches): " + distance);
     }
 
     /**
