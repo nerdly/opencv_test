@@ -68,6 +68,16 @@ public class App {
 
         Imgproc.cvtColor(image, hsv, Imgproc.COLOR_BGR2HSV);
 
+        List<Mat> hsvsplit = new ArrayList<Mat>();
+        hsvsplit.add(new Mat());
+        hsvsplit.add(new Mat());
+        hsvsplit.add(new Mat());
+
+        Core.split(hsv, hsvsplit);
+
+        writeImage(hsvsplit.get(0), "hue");
+        
+
         Mat mask = new Mat();
 
 
