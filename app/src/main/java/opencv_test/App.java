@@ -108,7 +108,7 @@ public class App {
          // Extract the red channel and save for reference.
          Mat red = new Mat();
          Core.extractChannel(yCrCb, red, 2);
-         writeImage(red, "red");
+        // writeImage(red, "red");
  
          Scalar redtop = new Scalar(60,0, 0);
          Scalar redbottom = new Scalar(0, 0, 0);
@@ -116,7 +116,7 @@ public class App {
          Core.inRange(red, redbottom, redtop, ycrcbmask);
          
  
-         writeImage(ycrcbmask, "ycrcbmask");
+        // writeImage(ycrcbmask, "ycrcbmask");
  
          Mat blurred = new Mat();
          Size kernelsize = new Size(15,15);
@@ -125,7 +125,7 @@ public class App {
          Mat threshold = new Mat();
          Imgproc.threshold(blurred, threshold,  127, 255, Imgproc.THRESH_BINARY);
  
-         writeImage(blurred, "blurry");
+        // writeImage(blurred, "blurry");
  
          List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
          Imgproc.findContours(blurred, contours, threshold, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
@@ -150,7 +150,7 @@ public class App {
  
          }
 
-        return         contours.get(indexOfMaxArea);
+        return contours.get(indexOfMaxArea);
     }
 
     static PolePosition findPolePosition(Mat image)
@@ -161,9 +161,9 @@ public class App {
         int center = bounds.x + (bounds.width/2);
         int centerOfImage = image.width() / 2;
         int offset = Math.abs(center - centerOfImage);
-        System.out.println("Center of contour: " + center);
-        System.out.println("Center of image " + centerOfImage);
-        System.out.println("Offset: " + offset);
+        // System.out.println("Center of contour: " + center);
+        // System.out.println("Center of image " + centerOfImage);
+        // System.out.println("Offset: " + offset);
 
         return new PolePosition(bounds.width, offset);
     }
