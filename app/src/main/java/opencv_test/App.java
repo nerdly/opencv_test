@@ -37,112 +37,44 @@ public class App {
 
         // create image capture for zeroth web cam.
         //VideoCapture vc = new VideoCapture(0);
-        Mat image = Imgcodecs.imread("C:/Users/matth/OneDrive/Documents/Robotics/opencv_test/two foot.jpg" ); 
+        Mat image = Imgcodecs.imread("C:/Users/matth/OneDrive/Documents/Robotics/opencv_test/9in.jpg" ); 
         //writeImage(image, "original");
 
-        // transform the image data into yCrCb color format.
-        Mat yCrCb = new Mat();
-        Imgproc.cvtColor(image, yCrCb, Imgproc.COLOR_BGR2YCrCb);
-
-        // Extract the blue channel and save for reference.
-        Mat blue = new Mat();
-        Core.extractChannel(yCrCb, blue, 1);
-
-        // Extract the red channel and save for reference.
-        Mat red = new Mat();
-        Core.extractChannel(yCrCb, red, 2);
-
-        // Extract the intensity channel and save for reference.
-        Mat intensity = new Mat();
-        Core.extractChannel(yCrCb, intensity, 0);
-
-        // grab the average value for the blue and red channels, and print out to console.
-        int avg1 = (int) Core.mean(blue).val[0];
-        int avg2 = (int) Core.mean(red).val[0];
-
-        System.out.println("blueavg:"+avg1 + " redavg:" + avg2);
-
-        //writeImage(red, "blue");
-
-        Mat hsv = new Mat();
-
-        Imgproc.cvtColor(image, hsv, Imgproc.COLOR_BGR2HSV);
-
-        List<Mat> hsvsplit = new ArrayList<Mat>();
-        hsvsplit.add(new Mat());
-        hsvsplit.add(new Mat());
-        hsvsplit.add(new Mat());
-
-        Core.split(hsv, hsvsplit);
-
-        writeImage(hsvsplit.get(0), "hue");
+        PolePosition position = findPolePosition(image);
         
+        System.out.println(position);
 
-        Mat mask = new Mat();
-
-
-        Scalar lower = new Scalar(0, 150, 175);
-        Scalar upper = new Scalar(60, 255, 255);
-
-        Core.inRange(hsv, lower, upper, mask);
-
-        writeImage(mask, "yellow");
-
-        Mat blurred = new Mat();
-        Size kernelsize = new Size(15,15);
-        Imgproc.GaussianBlur(mask, blurred, kernelsize, 0);
-
-        Mat threshold = new Mat();
-        Imgproc.threshold(blurred, threshold,  127, 255, Imgproc.THRESH_BINARY);
-
-        writeImage(blurred, "blurry");
-
-        List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        Imgproc.findContours(blurred, contours, threshold, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-        System.out.println("Found " + contours.size() + " Contours");
-
-        // find biggest contour
-
-        int indexOfMaxArea = 0;
-        double maxArea = 0;
-        
-        for(int i = 0; i < contours.size(); i++)
-        {   
-            double areaOfCurrentContour = Imgproc.contourArea(contours.get(i));
-            Rect bounds = Imgproc.boundingRect(contours.get(i));
-            //System.out.println("contour " + i + " width " + bounds.width + " height " + bounds.height + " cols " + contours.get(i).cols() + " rows " + contours.get(i).rows() + " continuous " + contours.get(i).isContinuous() + " area " + areaOfCurrentContour);
-            if(areaOfCurrentContour > maxArea)
-            {
-                maxArea = areaOfCurrentContour;
-                indexOfMaxArea = i;
-            }
-            //Imgproc.drawContours(contimg, contours, i, new Scalar(0,255,0),11);
-
-        }
-
-        MatOfPoint largestContour = contours.get(indexOfMaxArea);
-        Rect bounds = Imgproc.boundingRect(largestContour);
-        Point tl = new Point(bounds.x, bounds.y);
-        Point br = new Point(bounds.x + bounds.width, bounds.y + bounds.height);
+        Point tl = new Point((image.width()/2) + position.getOffsetFromCenter() - (position.getWidth()/2), 0);
+        Point br = new Point((image.width()/2) + position.getOffsetFromCenter() + (position.getWidth()/2), image.height());
         Imgproc.rectangle(image, tl, br,new Scalar(0,255,0) , 10);
 
-        // Find center of biggest contour
-        int center = bounds.x + (bounds.width/2);
-        int centerOfImage = image.width() / 2;
-        int offset = Math.abs(center - centerOfImage);
-        System.out.println("Center of contour: " + center);
-        System.out.println("Center of image " + centerOfImage);
-        System.out.println("Offset: " + offset);
-        
-        Imgproc.line(image, new Point(center, 0), new Point(center, image.height()), new Scalar(255,0,0));
+        Imgproc.line(image, new Point((image.width()/2) + position.getOffsetFromCenter(), 0), new Point((image.width()/2) + position.getOffsetFromCenter(), image.height()), new Scalar(255,0,0));
         writeImage(image, "Biggest");
 
-        // find width
-        double focalLength = 25; // in
-        double KNOWN_WIDTH = 1.0; // in
+        // find focal length
+        //double focalLength = 1371.5; // (bounds.width * 6.5);
+        
 
-        double distance = (KNOWN_WIDTH * focalLength) / bounds.width;
-        System.out.println("Width (inches): " + distance);
+        // find width
+       //double KNOWN_WIDTH = 1.0; // in
+
+        //double distance = (focalLength) / bounds.width;
+        //System.out.println("Distance (inches): " + distance + " with focal length " + focalLength);
+
+        //double pixelangle = 60.0 / image.width();
+        //double offsetangle = pixelangle * offset;
+
+        //System.out.println("Offset angle = " + offsetangle + " with pixel angle = " + pixelangle);
+
+        // // Calculate angle
+        // // Sin theta = opposite over hypotenuse
+        // // hypotenuse = distance
+        // // opposite = offset * distance
+        // double opposite = offset * distance;
+        // double sintheta = opposite/distance;
+        // double theta = Math.asin(sintheta);
+
+        // System.out.println("Sin Theta = " + sintheta + " theta = " + theta + " Opposite = " + opposite);
     }
 
     /**
@@ -165,5 +97,74 @@ public class App {
 
         // Write to file 
         Imgcodecs.imwrite(name, image); 
+    }
+
+    static MatOfPoint  findLargestContour(Mat image)
+    {
+         // transform the image data into yCrCb color format.
+         Mat yCrCb = new Mat();
+         Imgproc.cvtColor(image, yCrCb, Imgproc.COLOR_BGR2YCrCb);
+ 
+         // Extract the red channel and save for reference.
+         Mat red = new Mat();
+         Core.extractChannel(yCrCb, red, 2);
+         writeImage(red, "red");
+ 
+         Scalar redtop = new Scalar(60,0, 0);
+         Scalar redbottom = new Scalar(0, 0, 0);
+         Mat ycrcbmask = new Mat();
+         Core.inRange(red, redbottom, redtop, ycrcbmask);
+         
+ 
+         writeImage(ycrcbmask, "ycrcbmask");
+ 
+         Mat blurred = new Mat();
+         Size kernelsize = new Size(15,15);
+         Imgproc.GaussianBlur(ycrcbmask, blurred, kernelsize, 0);
+ 
+         Mat threshold = new Mat();
+         Imgproc.threshold(blurred, threshold,  127, 255, Imgproc.THRESH_BINARY);
+ 
+         writeImage(blurred, "blurry");
+ 
+         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+         Imgproc.findContours(blurred, contours, threshold, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+         System.out.println("Found " + contours.size() + " Contours");
+ 
+         // find biggest contour
+ 
+         int indexOfMaxArea = 0;
+         double maxArea = 0;
+         
+         for(int i = 0; i < contours.size(); i++)
+         {   
+             double areaOfCurrentContour = Imgproc.contourArea(contours.get(i));
+             Rect bounds = Imgproc.boundingRect(contours.get(i));
+             //System.out.println("contour " + i + " width " + bounds.width + " height " + bounds.height + " cols " + contours.get(i).cols() + " rows " + contours.get(i).rows() + " continuous " + contours.get(i).isContinuous() + " area " + areaOfCurrentContour);
+             if(areaOfCurrentContour > maxArea)
+             {
+                 maxArea = areaOfCurrentContour;
+                 indexOfMaxArea = i;
+             }
+             //Imgproc.drawContours(contimg, contours, i, new Scalar(0,255,0),11);
+ 
+         }
+
+        return         contours.get(indexOfMaxArea);
+    }
+
+    static PolePosition findPolePosition(Mat image)
+    {
+        MatOfPoint largestContour = findLargestContour(image);
+        Rect bounds = Imgproc.boundingRect(largestContour);
+        // Find center of biggest contour
+        int center = bounds.x + (bounds.width/2);
+        int centerOfImage = image.width() / 2;
+        int offset = Math.abs(center - centerOfImage);
+        System.out.println("Center of contour: " + center);
+        System.out.println("Center of image " + centerOfImage);
+        System.out.println("Offset: " + offset);
+
+        return new PolePosition(bounds.width, offset);
     }
 }
