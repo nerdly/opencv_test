@@ -6,22 +6,19 @@ package opencv_test;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.firstinspires.ftc.teamcode.PolePosition;
+import org.firstinspires.ftc.teamcode.PolePositionFinder;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.videoio.VideoCapture;
 
 
 public class App {
     // Load the native code library for OpenCV from the gradle lib.
     static{ nu.pattern.OpenCV.loadLocally(); }
-
-    // Define the area of the captured picture to look at.
-    private static Point TOPLEFT_ANCHOR_POINT = new Point(250,200);
-    private static Point BOTTOMRIGHT_ANCHOR_POINT = new Point(300,275);
 
     /**
      * Main program function, execution starts here.
@@ -31,58 +28,23 @@ public class App {
         System.out.println("Welcome to OpenCV " + Core.VERSION);
 
         // create image capture for zeroth web cam.
-        VideoCapture vc = new VideoCapture(0);
-        Mat image = new Mat(); 
+        //VideoCapture vc = new VideoCapture(0);
+        Mat image = Imgcodecs.imread("C:/Users/matth/OneDrive/Documents/Robotics/opencv_test/9in.jpg" ); 
+        //writeImage(image, "original");
 
-        // read image to matrix 
-        vc.read(image); 
-  
-        // save the image as captured by the camera for reference.
-        writeImage(image, "captured");
+        PolePositionFinder ppf = new PolePositionFinder();
 
-        // grab the part of the original image to run detection on
-        Mat region1_Cb = image.submat(new Rect(TOPLEFT_ANCHOR_POINT, BOTTOMRIGHT_ANCHOR_POINT));
+
+        PolePosition position = ppf.findPolePosition(image);
         
-        // Save sub-image for reference.
-        writeImage(region1_Cb, "regionraw");
+        System.out.println(position);
 
-        // Print out the size of the sub-image in rows and columns
-        System.out.println("Cols: " + region1_Cb.cols() + " rows: " + region1_Cb.rows());
+        Point tl = new Point((image.width()/2) + position.getOffsetFromCenter() - (position.getWidth()/2), 0);
+        Point br = new Point((image.width()/2) + position.getOffsetFromCenter() + (position.getWidth()/2), image.height());
+        Imgproc.rectangle(image, tl, br,new Scalar(0,255,0) , 10);
 
-
-        // transform the image data into yCrCb color format.
-        Mat yCrCb = new Mat();
-        Imgproc.cvtColor(region1_Cb, yCrCb, Imgproc.COLOR_BGR2YCrCb);
-
-        // Extract the blue channel and save for reference.
-        Mat blue = new Mat();
-        Core.extractChannel(yCrCb, blue, 1);
-        writeImage(blue, "blue");
-
-        // Extract the red channel and save for reference.
-        Mat red = new Mat();
-        Core.extractChannel(yCrCb, red, 2);
-        writeImage(red, "red");
-
-        // Extract the intensity channel and save for reference.
-        Mat c = new Mat();
-        Core.extractChannel(yCrCb, c, 0);
-        writeImage(c, "c");
-
-        // grabe the average value for the blue and red channels, and print out to console.
-        int avg1 = (int) Core.mean(blue).val[0];
-        int avg2 = (int) Core.mean(red).val[0];
-
-        System.out.println("blueavg:"+avg1 + " redavg:" + avg2);
-
-
-        // Mat threshold = new Mat();
-        //  Imgproc.threshold(greyscale, threshold,  127, 255, Imgproc.THRESH_BINARY);
-        // writeImage(threshold, "thresh");
-
-        // List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        // Imgproc.findContours(greyscale, contours, threshold, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-        // System.out.println("Found " + contours.size() + " Contours");
+        Imgproc.line(image, new Point((image.width()/2) + position.getOffsetFromCenter(), 0), new Point((image.width()/2) + position.getOffsetFromCenter(), image.height()), new Scalar(255,0,0));
+        writeImage(image, "Biggest");
     }
 
     /**
@@ -105,5 +67,5 @@ public class App {
 
         // Write to file 
         Imgcodecs.imwrite(name, image); 
-    }
+    } 
 }
